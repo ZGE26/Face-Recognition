@@ -1,0 +1,22 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Build and packaging artifacts
+build/
+dist/
+*.egg-info/
+
+# Local face dataset output
+face_dataset.dat
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
