@@ -6,17 +6,24 @@ __pycache__/
 # Virtual environments
 .venv/
 venv/
-env/
+.env
 
 # Build and packaging artifacts
 build/
 dist/
 *.egg-info/
+.pytest_cache/
 
-# Local face dataset output
+# Local face dataset output (demo standalone)
 face_dataset.dat
+demo/face_dataset.dat
 
 # IDE and OS files
 .vscode/
 .idea/
 .DS_Store
+
+# AI Agents / IDE Config
+.agent/
+agent.md
+CLAUDE.md

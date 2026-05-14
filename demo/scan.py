@@ -1,28 +1,28 @@
+import os
+
 import cv2
 import face_recognition
 import pickle
-import os
-import numpy as np
 
-def running_scan() :
-    try:
-        with open('face_dataset.dat', 'rb') as f:
-            data = pickle.load(f)
-            
-    except FileNotFoundError:
+_DATASET_PATH = os.path.join(os.path.dirname(__file__), "face_dataset.dat")
+
+
+def running_scan():
+    if not os.path.exists(_DATASET_PATH):
         print("Dataset wajah tidak ditemukan. Pastikan kamu sudah mendaftarkan setidaknya satu wajah.")
         return
-    
+
+    with open(_DATASET_PATH, "rb") as f:
+        data = pickle.load(f)
+
     known_face_names = list(data.keys())
     known_face_encodings = list(data.values())
-    
+
     video_capture = cv2.VideoCapture(0)
-    
     print("Scanner Activated : Push 'Q' to quit.")
-    
+
     while True:
         ret, frame = video_capture.read()
-        
         if not ret:
             print("Can't receive frame (stream end?). Exiting ...")
             break
@@ -36,35 +36,26 @@ def running_scan() :
             name = "Unknown"
 
             if True in matches:
-                first_match_index = matches.index(True)
-                name = known_face_names[first_match_index]
-                
-            if name == "Unknown":
-                color = (0, 0, 255)
-            else:
-                color = (0, 255, 0)
+                name = known_face_names[matches.index(True)]
 
+            color = (0, 255, 0) if name != "Unknown" else (0, 0, 255)
             cv2.rectangle(frame, (left, top), (right, bottom), color, 2)
 
-            text = name
             font = cv2.FONT_HERSHEY_SIMPLEX
             font_scale = 0.5
             thickness = 1
-            (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
-            label_left = left
+            (text_width, text_height), baseline = cv2.getTextSize(name, font, font_scale, thickness)
             label_top = bottom + 8
             label_right = left + text_width + 12
             label_bottom = bottom + text_height + baseline + 12
 
-            cv2.rectangle(frame, (label_left, label_top), (label_right, label_bottom), color, cv2.FILLED)
-            cv2.putText(frame, text, (left + 6, label_bottom - 6), font, font_scale, (255, 255, 255), thickness)
+            cv2.rectangle(frame, (left, label_top), (label_right, label_bottom), color, cv2.FILLED)
+            cv2.putText(frame, name, (left + 6, label_bottom - 6), font, font_scale, (255, 255, 255), thickness)
 
-        cv2.imshow('Face Recognition Scanner', frame)
+        cv2.imshow("Face Recognition Scanner", frame)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             break
-        
-        
+
     video_capture.release()
     cv2.destroyAllWindows()
-    
