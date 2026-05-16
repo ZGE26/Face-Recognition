@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic_settings import BaseSettings
 
 
@@ -8,6 +10,7 @@ class Settings(BaseSettings):
     DB_PASSWORD: str = ""
     DB_NAME: str = "face_recognition"
     RECOGNITION_TOLERANCE: float = 0.6
+    CORS_ORIGINS: List[str] = ["http://localhost:3000"]
 
     model_config = {"env_file": ".env"}
 

@@ -5,9 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import FaceEncoding, User
 
 
-async def employee_id_exists(db: AsyncSession, employee_id: str) -> bool:
+async def get_user_by_employee_id(db: AsyncSession, employee_id: str) -> User | None:
     result = await db.execute(select(User).where(User.employee_id == employee_id))
-    return result.scalar_one_or_none() is not None
+    return result.scalar_one_or_none()
 
 
 async def create_user(db: AsyncSession, name: str, employee_id: str) -> User:
