@@ -20,14 +20,15 @@ router = APIRouter()
 
 async def process_frame(db: AsyncSession, frame_bytes: bytes) -> dict:
     loop = asyncio.get_running_loop()
+
+    def _decode_and_extract(data: bytes):
+        img = decode_image_rgb(data)
+        return face_service.extract_best_embedding(img)
+
     try:
-        image_rgb = decode_image_rgb(frame_bytes)
+        embedding = await loop.run_in_executor(None, _decode_and_extract, frame_bytes)
     except ValueError as e:
         return {"error": str(e)}
-
-    embedding = await loop.run_in_executor(
-        None, face_service.extract_best_embedding, image_rgb
-    )
     if embedding is None:
         return ScanResponse(
             recognized=False, scanned_at=datetime.now(timezone.utc)
@@ -51,6 +52,10 @@ async def process_frame(db: AsyncSession, frame_bytes: bytes) -> dict:
 
     user_id, confidence = match
     user = await user_repository.get_user_by_id(db, user_id)
+    if user is None:
+        return ScanResponse(
+            recognized=False, scanned_at=datetime.now(timezone.utc)
+        ).model_dump(mode="json")
     return ScanResponse(
         recognized=True,
         user_id=user.id,
@@ -65,6 +70,7 @@ async def process_frame(db: AsyncSession, frame_bytes: bytes) -> dict:
 async def ws_scan(websocket: WebSocket, db: AsyncSession = Depends(get_db)):
     await websocket.accept()
 
+    # Single-slot buffer: newer frames silently overwrite unprocessed ones (intentional drop).
     latest_frame: bytes | None = None
     frame_event = asyncio.Event()
     disconnected = False
@@ -95,7 +101,11 @@ async def ws_scan(websocket: WebSocket, db: AsyncSession = Depends(get_db)):
             if frame is None:
                 continue
             latest_frame = None
-            result = await process_frame(db, frame)
+            try:
+                result = await process_frame(db, frame)
+            except Exception:
+                logger.exception("Unhandled error processing frame")
+                break
             try:
                 await websocket.send_json(result)
             except Exception:
