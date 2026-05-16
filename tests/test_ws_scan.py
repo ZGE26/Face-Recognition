@@ -23,7 +23,7 @@ async def test_process_frame_corrupt_bytes_returns_error_dict(db):
 
     result = await process_frame(db, b"not an image")
 
-    assert "error" in result
+    assert result.get("error")
     assert "recognized" not in result
 
 
@@ -31,7 +31,8 @@ async def test_process_frame_corrupt_bytes_returns_error_dict(db):
 async def test_process_frame_empty_db_returns_not_recognized(db):
     from app.api.v1.routes.ws_scan import process_frame
 
-    image_bytes = open(FACE1_PATH, "rb").read()
+    with open(FACE1_PATH, "rb") as f:
+        image_bytes = f.read()
     result = await process_frame(db, image_bytes)
 
     assert result["recognized"] is False
@@ -43,7 +44,8 @@ async def test_process_frame_empty_db_returns_not_recognized(db):
 async def test_process_frame_registered_face_returns_recognized(db):
     from app.api.v1.routes.ws_scan import process_frame
 
-    image_bytes = open(FACE1_PATH, "rb").read()
+    with open(FACE1_PATH, "rb") as f:
+        image_bytes = f.read()
     reg = await register_user(db, "Arya", "EMP999", image_bytes)
     result = await process_frame(db, image_bytes)
 
