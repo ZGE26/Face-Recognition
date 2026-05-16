@@ -105,11 +105,13 @@ async def ws_scan(websocket: WebSocket, db: AsyncSession = Depends(get_db)):
                 result = await process_frame(db, frame)
             except Exception:
                 logger.exception("Unhandled error processing frame")
+                await websocket.close(code=1011)
                 break
             try:
                 await websocket.send_json(result)
             except Exception:
                 logger.exception("Failed to send WS result")
+                await websocket.close(code=1011)
                 break
 
     await asyncio.gather(_receive_loop(), _process_loop())
