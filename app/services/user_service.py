@@ -22,12 +22,9 @@ async def register_user(
 ) -> UserRegisterResponse:
     existing = await user_repository.get_user_by_employee_id(db, employee_id)
     if existing:
-        return UserRegisterResponse(
-            success=True,
-            message="User already registered",
-            user_id=existing.id,
-            name=existing.name,
-            employee_id=existing.employee_id,
+        raise HTTPException(
+            status_code=409,
+            detail=f"Employee ID '{employee_id}' is already registered",
         )
 
     try:
