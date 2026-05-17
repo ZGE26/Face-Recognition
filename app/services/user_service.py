@@ -87,3 +87,17 @@ async def scan_face(db: AsyncSession, image_bytes: bytes) -> ScanResponse:
         confidence=confidence,
         scanned_at=datetime.utcnow(),
     )
+
+
+async def get_user_info(db: AsyncSession, employee_id: str) -> UserRegisterResponse:
+    user = await user_repository.get_user_by_employee_id(db, employee_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return UserRegisterResponse(
+        success=True,
+        message="User found",
+        user_id=user.id,
+        name=user.name,
+        employee_id=user.employee_id,
+    )

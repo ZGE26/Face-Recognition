@@ -32,3 +32,16 @@ async def get_all_encodings(db: AsyncSession) -> list[tuple[int, np.ndarray]]:
 async def get_user_by_id(db: AsyncSession, user_id: int) -> User | None:
     result = await db.execute(select(User).where(User.id == user_id))
     return result.scalar_one_or_none()
+
+
+async def get_all_users(db: AsyncSession) -> list[User]:
+    result = await db.execute(select(User).order_by(User.id))
+    return list(result.scalars().all())
+
+
+async def delete_user_by_employee_id(db: AsyncSession, employee_id: str) -> bool:
+    user = await get_user_by_employee_id(db, employee_id)
+    if user is None:
+        return False
+    await db.delete(user)
+    return True
